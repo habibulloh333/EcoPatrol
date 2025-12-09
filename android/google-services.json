@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "99261306274",
+    "project_id": "mohamadzeinurrazikin-fa59c",
+    "storage_bucket": "mohamadzeinurrazikin-fa59c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:99261306274:android:e8e1cac72c368676760efb",
+        "android_client_info": {
+          "package_name": "com.example.ecopatrol"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCidx4RjvTurbnfg2Fq1jZfoQNBS48O1eE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:99261306274:android:ff90b5fcb8d3d24e760efb",
+        "android_client_info": {
+          "package_name": "com.example.flutter_firebase_auth"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCidx4RjvTurbnfg2Fq1jZfoQNBS48O1eE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
