@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/auth_provider.dart'; // Pastikan path ini benar
+import '../providers/auth_provider.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -64,11 +65,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const Icon(Icons.eco, size: 80, color: Colors.green),
               const SizedBox(height: 16),
               const Text(
-                "EcoPatrol Login",
+                "Login",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green),
+              ),
+              const Text(
+                "EcoPatrol",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green),
               ),
               const SizedBox(height: 32),
-
               // Input Email
               TextField(
                 controller: _emailController,
@@ -106,6 +110,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: _handleLogin,
                   child: const Text("MASUK", style: TextStyle(color: Colors.white, fontSize: 16)),
                 ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                      );
+                    },
+                    child: const Text("Belum punya akun? Daftar disini"),
+                  ),
+                ],
               ),
             ],
           ),

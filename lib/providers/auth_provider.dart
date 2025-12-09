@@ -94,6 +94,43 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     }
   }
 
+  // Potongan kode di dalam class AuthNotifier
+  Future<void> Register(String nama, String email, String password) async {
+    try {
+      // 1. Buat akun di Firebase Auth
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // 2. Siapkan data user untuk Firestore
+      UserModel newUser = UserModel(
+        uid: userCredential.user!.uid,
+        nama: nama,
+        email: email,
+        // Field lain bisa diisi default atau kosong dulu
+        nim: '',
+        prodi: '',
+        kelas: '',
+        role: 'warga', // Role default untuk EcoPatrol
+        fcmToken: '',
+      );
+
+      // 3. Simpan data detail ke Firestore
+      await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
+
+      // 4. Update state agar otomatis login
+      state = newUser;
+
+      // 5. Simpan sesi
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_session', jsonEncode(newUser.toMap()));
+
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   // FUNGSI 3: LOGOUT
   Future<void> logout() async {
     await _auth.signOut();
