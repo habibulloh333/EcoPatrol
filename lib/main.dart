@@ -8,6 +8,7 @@ import 'screens/settings_screen.dart';
 // Import dummy dashboard (karena dashboard tugas mhs lain)
 // Nanti diganti dengan file dashboard asli
 import 'package:flutter/cupertino.dart';
+import 'screens/add_report_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -96,13 +97,29 @@ class DashboardPlaceholder extends StatelessWidget {
           )
         ],
       ),
+
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton(
+            backgroundColor: Colors.green,
+            child: const Icon(Icons.add, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddReportScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.map, size: 100, color: Colors.green),
-            Text("Peta & Kamera akan ada di sini"),
-            Text("(Tugas Mahasiswa Lain)"),
+            Text("INI TAMPILAN LAPORAN YANG DIBUAT"),
           ],
         ),
       ),
