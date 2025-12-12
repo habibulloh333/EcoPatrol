@@ -25,9 +25,6 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
 
   bool _isLoading = false;
 
-  // ---------------------------------------------------------
-  // 🔐 CHECK PERMISSION
-  // ---------------------------------------------------------
 
   Future<bool> _checkCameraPermission() async {
     var status = await Permission.camera.status;
@@ -49,9 +46,6 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
     return status.isGranted;
   }
 
-  // ---------------------------------------------------------
-  // 📸 PICK IMAGE DENGAN PERMISSION
-  // ---------------------------------------------------------
 
   Future<void> _pickImageWithPermission(ImageSource source) async {
     bool allowed = false;
@@ -77,9 +71,6 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
     _pickImage(source);
   }
 
-  // ---------------------------------------------------------
-  // PICK IMAGE NORMAL
-  // ---------------------------------------------------------
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
@@ -91,10 +82,6 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
       });
     }
   }
-
-  // ---------------------------------------------------------
-  // 📍 GET GPS
-  // ---------------------------------------------------------
 
   Future<void> _getLocation() async {
     LocationPermission permission = await Geolocator.checkPermission();
@@ -119,10 +106,6 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
       _lon = pos.longitude;
     });
   }
-
-  // ---------------------------------------------------------
-  // 📤 SUBMIT
-  // ---------------------------------------------------------
 
   Future<void> _submitReport() async {
     if (_titleController.text.isEmpty ||
@@ -171,9 +154,6 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
     }
   }
 
-  // ---------------------------------------------------------
-  // 🖼️ UI
-  // ---------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
