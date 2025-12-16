@@ -27,4 +27,14 @@ class ReportNotifier extends StateNotifier<AsyncValue<List<ReportModel>>> {
   Future<void> addReport(ReportModel report) async {
     await _db.addReport(report);
   }
+
+  // Update arbitrary fields on a report by id
+  Future<void> updateReport(String id, Map<String, dynamic> fields) async {
+    await _db.updateReport(id, fields);
+  }
+
+  // Delete a report by id
+  Future<void> deleteReport(String id) async {
+    await _db.deleteReport(id);
+  }
 }

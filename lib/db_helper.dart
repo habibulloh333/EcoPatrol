@@ -30,4 +30,22 @@ class DbHelper {
       }).toList();
     });
   }
+
+  // Fungsi Update: Mengubah beberapa field pada laporan
+  Future<void> updateReport(String id, Map<String, dynamic> fields) async {
+    try {
+      await _reportCollection.doc(id).update(fields);
+    } catch (e) {
+      throw Exception('Gagal update laporan: $e');
+    }
+  }
+
+  // Fungsi Delete: Menghapus laporan berdasarkan id
+  Future<void> deleteReport(String id) async {
+    try {
+      await _reportCollection.doc(id).delete();
+    } catch (e) {
+      throw Exception('Gagal hapus laporan: $e');
+    }
+  }
 }

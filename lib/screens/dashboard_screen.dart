@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/report_provider.dart';
 import '../widgets/report_item.dart';
+import 'detail_report_screen.dart';
 // Import komponen
 import '../widgets/summary_card.dart';
 import 'add_report_screen.dart';
@@ -94,11 +95,9 @@ class DashboardScreen extends ConsumerWidget {
                           return ReportItem(
                             report: report,
                             onTap: () {
-                              // Placeholder untuk Mahasiswa 4 (Detail Screen)
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text("Detail: ${report.title}"),
-                                ),
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => DetailReportScreen(report: report)),
                               );
                             },
                           );
