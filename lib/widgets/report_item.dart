@@ -12,7 +12,6 @@ class ReportItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Logika Warna: Hijau jika selesai, Merah/Oranye jika pending
     final isSelesai = report.status.toLowerCase() == 'selesai';
     final statusColor = isSelesai ? Colors.green : Colors.orange;
     final statusText = isSelesai ? "Selesai" : "Pending";
@@ -29,7 +28,7 @@ class ReportItem extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. FOTO (KIRI)
+
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Container(
@@ -42,7 +41,6 @@ class ReportItem extends StatelessWidget {
 
               const SizedBox(width: 12),
 
-              // 2. TEXT INFO (TENGAH)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +83,6 @@ class ReportItem extends StatelessWidget {
                 ),
               ),
 
-              // 3. BADGE STATUS (KANAN)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -109,7 +106,6 @@ class ReportItem extends StatelessWidget {
     );
   }
 
-  // Helper untuk menampilkan gambar file lokal vs placeholder
   Widget _buildImage(String path) {
     if (path.isEmpty) return const Icon(Icons.image, color: Colors.grey);
     final file = File(path);

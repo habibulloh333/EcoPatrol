@@ -18,13 +18,10 @@ class SummaryCard extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            // Bagian Kiri: Total Laporan
             _buildStatItem("Total Laporan", total.toString(), Icons.assignment),
 
-            // Garis Pemisah Putih
             Container(height: 40, width: 1, color: Colors.white54),
 
-            // Bagian Kanan: Laporan Selesai
             _buildStatItem("Selesai", selesai.toString(), Icons.check_circle),
           ],
         ),
@@ -32,7 +29,6 @@ class SummaryCard extends StatelessWidget {
     );
   }
 
-  // Widget kecil untuk menyusun Ikon + Angka + Label
   Widget _buildStatItem(String label, String value, IconData icon) {
     return Column(
       children: [

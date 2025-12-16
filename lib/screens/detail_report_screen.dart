@@ -1,8 +1,7 @@
-// lib/screens/detail_report_screen.dart (FINAL CODE)
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+// Hapus: import 'dart:convert'; // HAPUS IMPORT BASE64
 
 import '../models/report_model.dart';
 import '../providers/report_provider.dart';
@@ -13,7 +12,7 @@ class DetailReportScreen extends ConsumerWidget {
 
   const DetailReportScreen({super.key, required this.report});
 
-  // WIDGET HELPER UNTUK MENAMPILKAN GAMBAR (Preview)
+  // WIDGET HELPER UNTUK MENAMPILKAN GAMBAR (Kembali menggunakan URL Network)
   Widget _buildImage(BuildContext context, String url) {
     if (url.isEmpty) {
       // Kotak jika foto tidak ada
@@ -28,18 +27,17 @@ class DetailReportScreen extends ConsumerWidget {
       );
     }
 
-    // Wrap dengan Padding di sini untuk memisahkan gambar secara vertikal
     return Padding(
       padding: const EdgeInsets.only(bottom: 10.0), // Padding di bawah gambar
       child: GestureDetector(
         onTap: () => _showFullImage(context, url), // Logika klik full screen
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.network(
+          child: Image.network( // KEMBALI KE Image.network
             url,
             height: 300,
             width: double.infinity,
-            fit: BoxFit.cover, // Kunci: Menjaga rasio aspek sambil memenuhi kotak
+            fit: BoxFit.cover,
             loadingBuilder: (ctx, child, progress) {
               if (progress == null) return child;
               return Container(height: 300, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator()));
@@ -51,7 +49,7 @@ class DetailReportScreen extends ConsumerWidget {
     );
   }
 
-  // LOGIKA HELPER: TAMPILKAN FOTO FULL SIZE (UX Optimal)
+  // LOGIKA HELPER: TAMPILKAN FOTO FULL SIZE (Menggunakan URL Network)
   void _showFullImage(BuildContext context, String url) {
     if (url.isEmpty) return;
 
@@ -68,9 +66,9 @@ class DetailReportScreen extends ConsumerWidget {
             panEnabled: true,
             minScale: 0.5,
             maxScale: 4.0,
-            child: Image.network(
+            child: Image.network( // KEMBALI KE Image.network
               url,
-              fit: BoxFit.contain, // Mempertahankan rasio aspek di mode full screen
+              fit: BoxFit.contain,
               loadingBuilder: (ctx, child, progress) {
                 if (progress == null) return child;
                 return const Center(child: CircularProgressIndicator(color: Colors.white));
@@ -85,7 +83,7 @@ class DetailReportScreen extends ConsumerWidget {
     );
   }
 
-  // LOGIKA HAPUS (MEMANGGIL PROVIDER)
+  // LOGIKA HAPUS (MEMANGGIL PROVIDER) - Tidak diubah
   void _confirmDelete(BuildContext context, WidgetRef ref, String id) async {
     final ok = await showDialog<bool>(
       context: context,
@@ -117,17 +115,10 @@ class DetailReportScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (report == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Error Detail')),
-        body: const Center(
-          child: Text('Gagal memuat detail laporan. Data hilang saat navigasi.',
-              textAlign: TextAlign.center),
-        ),
-      );
-    }
-
     final isSelesai = report.status.toLowerCase() == 'selesai';
+
+    // ASUMSI: report.imageUrl adalah String kosong jika tidak ada foto
+    final imageUrl = report.imageUrl.isEmpty ? '' : report.imageUrl;
 
     return Scaffold(
       appBar: AppBar(
@@ -147,7 +138,6 @@ class DetailReportScreen extends ConsumerWidget {
                 );
               },
             ),
-          // Jika ada IconButton lain, tambahkan di sini
         ],
 
       ),
@@ -158,8 +148,9 @@ class DetailReportScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // --- 1. FOTO BUKTI AWAL ---
-              _buildImage(context, report.imageUrl),
-              const SizedBox(height: 10), // Jarak setelah gambar
+              // Menggunakan URL/String yang ada
+              _buildImage(context, imageUrl),
+              const SizedBox(height: 10),
 
               // --- DETAIL DATA AWAL ---
               Text(report.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
@@ -193,22 +184,13 @@ class DetailReportScreen extends ConsumerWidget {
                 Text(report.completionDescription ?? 'Tidak ada deskripsi.'),
                 const SizedBox(height: 12),
 
-                if (report.completionPhotoUrl != null && report.completionPhotoUrl!.isNotEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Foto Hasil Pengerjaan:', style: const TextStyle(fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 8),
-                      // Tampilkan foto penyelesaian
-                      _buildImage(context, report.completionPhotoUrl!),
-                    ],
-                  ),
+                // HAPUS SEMUA LOGIKA FOTO PENYELESAIAN (completionPhotoUrl / completionPhotoBase64)
+
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     const Icon(Icons.check_circle, size: 16, color: Colors.grey),
                     const SizedBox(width: 6),
-                    // Perbaikan Baris Waktu Selesai
                     Text('Selesai pada: ${report.completedAt != null
                         ? DateFormat('dd MMM yyyy, HH:mm').format(report.completedAt!)
                         : 'Waktu belum tersimpan'}'),
@@ -217,7 +199,7 @@ class DetailReportScreen extends ConsumerWidget {
                 const SizedBox(height: 18),
               ],
 
-              // --- Action buttons (MHS 4) ---
+              // --- Action buttons ---
               Row(
                 children: [
                   if (!isSelesai)
@@ -227,6 +209,7 @@ class DetailReportScreen extends ConsumerWidget {
                         icon: const Icon(Icons.check),
                         label: const Text('Tandai Selesai'),
                         onPressed: () async {
+                          // Navigasi ke EditScreen untuk menandai Selesai
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
