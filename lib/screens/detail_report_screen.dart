@@ -1,7 +1,8 @@
-import 'dart:io';
+// lib/screens/detail_report_screen.dart (FINAL CODE)
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
 import '../models/report_model.dart';
 import '../providers/report_provider.dart';
@@ -12,53 +13,211 @@ class DetailReportScreen extends ConsumerWidget {
 
   const DetailReportScreen({super.key, required this.report});
 
+  // WIDGET HELPER UNTUK MENAMPILKAN GAMBAR (Preview)
+  Widget _buildImage(BuildContext context, String url) {
+    if (url.isEmpty) {
+      // Kotak jika foto tidak ada
+      return Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.broken_image, color: Colors.grey, size: 60),
+      );
+    }
+
+    // Wrap dengan Padding di sini untuk memisahkan gambar secara vertikal
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0), // Padding di bawah gambar
+      child: GestureDetector(
+        onTap: () => _showFullImage(context, url), // Logika klik full screen
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.network(
+            url,
+            height: 300,
+            width: double.infinity,
+            fit: BoxFit.cover, // Kunci: Menjaga rasio aspek sambil memenuhi kotak
+            loadingBuilder: (ctx, child, progress) {
+              if (progress == null) return child;
+              return Container(height: 300, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator()));
+            },
+            errorBuilder: (ctx, error, stackTrace) => Container(height: 300, color: Colors.grey[200], child: const Icon(Icons.error)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // LOGIKA HELPER: TAMPILKAN FOTO FULL SIZE (UX Optimal)
+  void _showFullImage(BuildContext context, String url) {
+    if (url.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: Center(
+          child: InteractiveViewer( // Memungkinkan Zoom dan Geser
+            panEnabled: true,
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: Image.network(
+              url,
+              fit: BoxFit.contain, // Mempertahankan rasio aspek di mode full screen
+              loadingBuilder: (ctx, child, progress) {
+                if (progress == null) return child;
+                return const Center(child: CircularProgressIndicator(color: Colors.white));
+              },
+              errorBuilder: (ctx, error, stackTrace) => const Center(
+                child: Icon(Icons.error, color: Colors.red, size: 50),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // LOGIKA HAPUS (MEMANGGIL PROVIDER)
+  void _confirmDelete(BuildContext context, WidgetRef ref, String id) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Konfirmasi Hapus'),
+        content: const Text('Yakin ingin menghapus laporan ini secara permanen?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      try {
+        await ref.read(reportProvider.notifier).deleteReport(id);
+
+        if (context.mounted) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Laporan dihapus')));
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error menghapus: $e')));
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (report == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error Detail')),
+        body: const Center(
+          child: Text('Gagal memuat detail laporan. Data hilang saat navigasi.',
+              textAlign: TextAlign.center),
+        ),
+      );
+    }
+
     final isSelesai = report.status.toLowerCase() == 'selesai';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Laporan'),
         backgroundColor: Colors.green,
+        actions: [
+          // Icon Edit hanya muncul jika laporan BELUM SELESAI
+          if (!isSelesai)
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => EditReportScreen(report: report),
+                  ),
+                );
+              },
+            ),
+          // Jika ada IconButton lain, tambahkan di sini
+        ],
+
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0), // Padding utama untuk seluruh konten
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GestureDetector(
-                onTap: () => _showFullImage(context, report.imageUrl),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    height: 300,
-                    width: double.infinity,
-                    color: Colors.grey[200],
-                    child: _buildImage(report.imageUrl),
-                  ),
-                ),
-              ),
+              // --- 1. FOTO BUKTI AWAL ---
+              _buildImage(context, report.imageUrl),
+              const SizedBox(height: 10), // Jarak setelah gambar
 
-              const SizedBox(height: 12),
-
-              Text(
-                report.title,
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
+              // --- DETAIL DATA AWAL ---
+              Text(report.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text('Status: ${report.status.toUpperCase()}', style: TextStyle(
+                color: isSelesai ? Colors.green.shade700 : Colors.red.shade700,
+                fontWeight: FontWeight.bold,
+              )),
               const SizedBox(height: 8),
               Text(report.description),
               const SizedBox(height: 12),
+
               Row(
                 children: [
                   const Icon(Icons.location_on, size: 16, color: Colors.grey),
                   const SizedBox(width: 6),
-                  Text('Lat: ${report.latitude.toStringAsFixed(6)}  |  Lng: ${report.longitude.toStringAsFixed(6)}'),
+                  Text('Dilaporkan pada: ${DateFormat('dd MMM yyyy, HH:mm').format(report.createdAt)}'),
                 ],
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 24),
 
-              // Action buttons
+              // --- DETAIL PENYELESAIAN (Jika Selesai) ---
+              if (isSelesai) ...[
+                const Divider(thickness: 1),
+                const Text(
+                  'Hasil Pekerjaan Petugas',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
+                ),
+                const SizedBox(height: 8),
+                Text('Deskripsi Pekerjaan:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                Text(report.completionDescription ?? 'Tidak ada deskripsi.'),
+                const SizedBox(height: 12),
+
+                if (report.completionPhotoUrl != null && report.completionPhotoUrl!.isNotEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Foto Hasil Pengerjaan:', style: const TextStyle(fontWeight: FontWeight.w600)),
+                      const SizedBox(height: 8),
+                      // Tampilkan foto penyelesaian
+                      _buildImage(context, report.completionPhotoUrl!),
+                    ],
+                  ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle, size: 16, color: Colors.grey),
+                    const SizedBox(width: 6),
+                    // Perbaikan Baris Waktu Selesai
+                    Text('Selesai pada: ${report.completedAt != null
+                        ? DateFormat('dd MMM yyyy, HH:mm').format(report.completedAt!)
+                        : 'Waktu belum tersimpan'}'),
+                  ],
+                ),
+                const SizedBox(height: 18),
+              ],
+
+              // --- Action buttons (MHS 4) ---
               Row(
                 children: [
                   if (!isSelesai)
@@ -68,7 +227,6 @@ class DetailReportScreen extends ConsumerWidget {
                         icon: const Icon(Icons.check),
                         label: const Text('Tandai Selesai'),
                         onPressed: () async {
-                          // Navigate to edit screen to add description + photo hasil kerja
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -91,63 +249,11 @@ class DetailReportScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 30),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildImage(String path) {
-    if (path.isEmpty) return const Icon(Icons.image, color: Colors.grey, size: 60);
-    final file = File(path);
-    if (file.existsSync()) {
-      return Image.file(file, fit: BoxFit.cover);
-    } else {
-      return const Icon(Icons.broken_image, color: Colors.grey, size: 60);
-    }
-  }
-
-  void _showFullImage(BuildContext context, String path) {
-    if (path.isEmpty) return;
-    final file = File(path);
-    showDialog(
-      context: context,
-      builder: (_) => Dialog(
-        child: InteractiveViewer(
-          child: file.existsSync()
-              ? Image.file(file, fit: BoxFit.contain)
-              : const SizedBox.shrink(),
-        ),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, WidgetRef ref, String id) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Konfirmasi'),
-        content: const Text('Yakin ingin menghapus laporan ini?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
-        ],
-      ),
-    );
-
-    if (ok == true) {
-      try {
-        await ref.read(reportProvider.notifier).deleteReport(id);
-        if (context.mounted) {
-          Navigator.pop(context); // close detail
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Laporan dihapus')));
-        }
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-        }
-      }
-    }
   }
 }

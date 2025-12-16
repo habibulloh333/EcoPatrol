@@ -31,23 +31,31 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  # === CORE MHS 1 & MHS 3 ===
+  flutter_riverpod: ^3.0.3       # State Management
+  cupertino_icons: ^1.0.8       # Ikon standar
+  shared_preferences: ^2.5.4    # Local Storage (MHS 1)
+
+  # === FIREBASE (MHS 1, 2, 4) ===
   firebase_core: ^4.2.1
   firebase_auth: ^6.1.2
+  cloud_firestore: ^6.1.0       # Database Laporan
+  firebase_storage: ^13.0.4     # Menyimpan Foto (MHS 4)
   google_sign_in: ^7.2.0
-  flutter_riverpod: ^3.0.3
-  cloud_firestore: ^6.1.0
-  shared_preferences: ^2.5.4
-  image_picker: ^1.2.1
-  firebase_storage: ^13.0.4
-  geolocator: ^14.0.2
-  permission_handler: ^12.0.1
+
+  # === HARDWARE & INPUT (MHS 2, MHS 4) ===
+  image_picker: ^1.2.1          # Ambil Foto
+  geolocator: ^14.0.2           # GPS
+  permission_handler: ^12.0.1   # Perlu untuk GPS di Android/iOS
+
+  # === DISARANKAN UNTUK MHS 4 ===
+  cached_network_image: ^3.3.1  # Untuk menampilkan URL foto tanpa error (Ganti Image.network)
+  intl: ^0.18.1                 # Untuk memformat waktu/tanggal (Waktu Selesai)
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
