@@ -4,8 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/report_model.dart';
 import '../providers/report_provider.dart';
 
-// Hapus import yang tidak diperlukan seperti 'dart:io', 'dart:convert', dan 'package:image_picker/image_picker.dart'
-
 class EditReportScreen extends ConsumerStatefulWidget {
   final ReportModel report;
 
@@ -18,11 +16,9 @@ class EditReportScreen extends ConsumerStatefulWidget {
 class _EditReportScreenState extends ConsumerState<EditReportScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controller untuk data umum laporan
   late final TextEditingController _titleController;
   late final TextEditingController _descController;
 
-  // Controller untuk data penyelesaian
   late final TextEditingController _doneDescController;
 
   @override
