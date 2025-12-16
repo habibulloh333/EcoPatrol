@@ -13,7 +13,7 @@ final authProvider = StateNotifierProvider<AuthNotifier, UserModel?>((ref) {
 
 // 2. Class Logika Utama
 class AuthNotifier extends StateNotifier<UserModel?> {
-  AuthNotifier() : super(null); // Awalnya user dianggap belum login (null)
+  AuthNotifier() : super(null);
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -28,13 +28,13 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     required String kelas,
   }) async {
     try {
-      // a. Buat akun di Firebase Auth (Cuma email & pass)
+      // Buat akun di Firebase Auth (Cuma email & pass)
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // b. Siapkan data profil lengkap
+      // Siapkan data profil lengkap
       UserModel newUser = UserModel(
         uid: userCredential.user!.uid, // Ambil UID dari langkah a
         nama: nama,
@@ -45,16 +45,16 @@ class AuthNotifier extends StateNotifier<UserModel?> {
         role: 'mahasiswa', // Default role
       );
 
-      // c. Simpan data profil ke Firestore (Database)
+      // Simpan data profil ke Firestore (Database)
       await _firestore
           .collection('users')
           .doc(newUser.uid) // Nama dokumen = UID User
           .set(newUser.toMap()..['created_at'] = FieldValue.serverTimestamp());
 
-      // d. Update State aplikasi (Otomatis login)
+      // Update State aplikasi (Otomatis login)
       state = newUser;
 
-      // e. Simpan sesi ke HP (biar gak login ulang kalau apps ditutup)
+      // Simpan sesi ke HP (biar gak login ulang kalau apps ditutup)
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_session', jsonEncode(newUser.toMap()));
 
@@ -63,27 +63,27 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     }
   }
 
-  // FUNGSI 2: LOGIN
+  // LOGIN
   Future<void> login(String email, String password) async {
     try {
-      // a. Login ke Firebase Auth
+      // Login ke Firebase Auth
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // b. Ambil data profil lengkap dari Firestore berdasarkan UID
+      // Ambil data profil lengkap dari Firestore berdasarkan UID
       DocumentSnapshot doc = await _firestore
           .collection('users')
           .doc(userCredential.user!.uid)
           .get();
 
       if (doc.exists) {
-        // c. Ubah data jadi UserModel dan update state
+        // Ubah data jadi UserModel dan update state
         UserModel user = UserModel.fromMap(doc.data() as Map<String, dynamic>);
         state = user;
 
-        // d. Simpan sesi ke HP
+        // Simpan sesi ke HP
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_session', jsonEncode(user.toMap()));
       } else {
@@ -97,13 +97,13 @@ class AuthNotifier extends StateNotifier<UserModel?> {
   // Potongan kode di dalam class AuthNotifier
   Future<void> Register(String nama, String email, String password) async {
     try {
-      // 1. Buat akun di Firebase Auth
+      // Buat akun di Firebase Auth
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // 2. Siapkan data user untuk Firestore
+      // Siapkan data user untuk Firestore
       UserModel newUser = UserModel(
         uid: userCredential.user!.uid,
         nama: nama,
@@ -119,7 +119,7 @@ class AuthNotifier extends StateNotifier<UserModel?> {
       // 3. Simpan data detail ke Firestore
       await _firestore.collection('users').doc(newUser.uid).set(newUser.toMap());
 
-      // 4. Update state agar otomatis login
+      // Update state agar otomatis login
       state = newUser;
 
       // 5. Simpan sesi
@@ -139,7 +139,7 @@ class AuthNotifier extends StateNotifier<UserModel?> {
     state = null; // Set state jadi kosong
   }
 
-  // FUNGSI 4: CEK SESI (Dipanggil saat aplikasi baru dibuka)
+  // CEK SESI (Dipanggil saat aplikasi baru dibuka)
   Future<void> loadSession() async {
     final prefs = await SharedPreferences.getInstance();
     final String? userJson = prefs.getString('user_session');

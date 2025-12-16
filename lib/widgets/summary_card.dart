@@ -11,7 +11,7 @@ class SummaryCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.all(16),
       elevation: 4,
-      color: Colors.green, // Warna tema Eco
+      color: Colors.green,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),

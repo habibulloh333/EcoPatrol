@@ -1,8 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'dart:typed_data';
 
-import '../models/report_model.dart'; // Pastikan import model benar
+import '../models/report_model.dart';
 
 class ReportItem extends StatelessWidget {
   final ReportModel report;
@@ -10,11 +10,68 @@ class ReportItem extends StatelessWidget {
 
   const ReportItem({super.key, required this.report, this.onTap});
 
+  // TAMPILKAN FOTO FULL SIZE
+  void _showFullImage(BuildContext context, Uint8List bytes) {
+    if (bytes.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (_) => Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: const Text('Foto Bukti Awal', style: TextStyle(color: Colors.white)),
+        ),
+        body: Center(
+          child: InteractiveViewer(
+            panEnabled: true,
+            minScale: 0.5,
+            maxScale: 4.0,
+            child: Image.memory(
+              bytes,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // WIDGET HELPER: MEMBANGUN GAMBAR DARI BASE64
+  Widget _buildImage(BuildContext context, String base64String) {
+    if (base64String.isEmpty) {
+      return const Icon(Icons.image, color: Colors.grey, size: 30);
+    }
+
+    Uint8List? imageBytes;
+    try {
+      imageBytes = base64Decode(base64String);
+    } catch (e) {
+      return const Icon(Icons.broken_image, color: Colors.red, size: 30);
+    }
+
+    return GestureDetector(
+      onTap: () => _showFullImage(context, imageBytes!), // Klik untuk Full Screen
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.memory(
+          imageBytes,
+          fit: BoxFit.cover,
+          errorBuilder: (ctx, error, stackTrace) =>
+          const Icon(Icons.broken_image, color: Colors.red, size: 30),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isSelesai = report.status.toLowerCase() == 'selesai';
     final statusColor = isSelesai ? Colors.green : Colors.orange;
     final statusText = isSelesai ? "Selesai" : "Pending";
+
+    final imageBase64 = report.imageUrlBase64;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -28,14 +85,11 @@ class ReportItem extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  color: Colors.grey[200],
-                  child: _buildImage(report.imageUrl),
-                ),
+              Container(
+                width: 70,
+                height: 70,
+                color: Colors.grey[200],
+                child: _buildImage(context, imageBase64),
               ),
 
               const SizedBox(width: 12),
@@ -103,15 +157,5 @@ class ReportItem extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _buildImage(String path) {
-    if (path.isEmpty) return const Icon(Icons.image, color: Colors.grey);
-    final file = File(path);
-    if (file.existsSync()) {
-      return Image.file(file, fit: BoxFit.cover);
-    } else {
-      return const Icon(Icons.broken_image, color: Colors.grey);
-    }
   }
 }

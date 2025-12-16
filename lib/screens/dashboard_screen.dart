@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/report_provider.dart';
 import '../widgets/report_item.dart';
 import 'detail_report_screen.dart';
-// Import komponen
+
 import '../widgets/summary_card.dart';
 import 'add_report_screen.dart';
-// Import halaman navigasi
+
 import 'settings_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -15,7 +15,6 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // 1. DENGARKAN DATA (WATCH)
     final asyncReports = ref.watch(reportProvider);
 
     return Scaffold(
@@ -43,16 +42,16 @@ class DashboardScreen extends ConsumerWidget {
         ),
       ),
 
-      // 2. KITA BUNGKUS BODY DENGAN .when AGAR LOADING MERATA
+      // KITA BUNGKUS BODY DENGAN .when AGAR LOADING MERATA
       body: asyncReports.when(
-        // A. KONDISI LOADING (Full Screen Loading)
+        // KONDISI LOADING (Full Screen Loading)
         loading: () =>
             const Center(child: CircularProgressIndicator(color: Colors.green)),
 
-        // B. KONDISI ERROR
+        // KONDISI ERROR
         error: (err, stack) => Center(child: Text("Error: $err")),
 
-        // C. KONDISI DATA ADA (Main Logic Kita)
+        // KONDISI DATA ADA (Main Logic Kita)
         data: (reports) {
           // --- LOGIKA HITUNG RINGKASAN (PAKET 4) ---
           final int totalLaporan = reports.length;
@@ -67,7 +66,7 @@ class DashboardScreen extends ConsumerWidget {
               // 3. TAMPILKAN HEADER DENGAN ANGKA ASLI
               SummaryCard(total: totalLaporan, selesai: laporanSelesai),
 
-              // 4. TAMPILKAN LIST
+              // TAMPILKAN LIST
               Expanded(
                 child: reports.isEmpty
                     ? Center(

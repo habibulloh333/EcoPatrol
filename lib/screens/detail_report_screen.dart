@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-// Hapus: import 'dart:convert'; // HAPUS IMPORT BASE64
+import 'dart:convert'; // <-- BARU: Tambahkan untuk Base64 Decode
+import 'dart:typed_data'; // <-- BARU: Tambahkan untuk Uint8List
 
 import '../models/report_model.dart';
 import '../providers/report_provider.dart';
@@ -12,9 +13,9 @@ class DetailReportScreen extends ConsumerWidget {
 
   const DetailReportScreen({super.key, required this.report});
 
-  // WIDGET HELPER UNTUK MENAMPILKAN GAMBAR (Kembali menggunakan URL Network)
-  Widget _buildImage(BuildContext context, String url) {
-    if (url.isEmpty) {
+  // WIDGET HELPER UNTUK MENAMPILKAN GAMBAR Menggunakan Base64
+  Widget _buildImage(BuildContext context, String base64String) {
+    if (base64String.isEmpty) {
       // Kotak jika foto tidak ada
       return Container(
         height: 200,
@@ -27,31 +28,29 @@ class DetailReportScreen extends ConsumerWidget {
       );
     }
 
+    // Konversi Base64 string ke bytes
+    final Uint8List bytes = base64Decode(base64String);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0), // Padding di bawah gambar
+      padding: const EdgeInsets.only(bottom: 10.0),
       child: GestureDetector(
-        onTap: () => _showFullImage(context, url), // Logika klik full screen
+        onTap: () => _showFullImage(context, bytes),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: Image.network( // KEMBALI KE Image.network
-            url,
+          child: Image.memory(
+            bytes,
             height: 300,
             width: double.infinity,
             fit: BoxFit.cover,
-            loadingBuilder: (ctx, child, progress) {
-              if (progress == null) return child;
-              return Container(height: 300, color: Colors.grey[200], child: const Center(child: CircularProgressIndicator()));
-            },
-            errorBuilder: (ctx, error, stackTrace) => Container(height: 300, color: Colors.grey[200], child: const Icon(Icons.error)),
           ),
         ),
       ),
     );
   }
 
-  // LOGIKA HELPER: TAMPILKAN FOTO FULL SIZE (Menggunakan URL Network)
-  void _showFullImage(BuildContext context, String url) {
-    if (url.isEmpty) return;
+  // LOGIKA HELPER: TAMPILKAN FOTO FULL SIZE (Menggunakan Base64)
+  void _showFullImage(BuildContext context, Uint8List bytes) {
+    if (bytes.isEmpty) return;
 
     showDialog(
       context: context,
@@ -62,20 +61,13 @@ class DetailReportScreen extends ConsumerWidget {
           iconTheme: const IconThemeData(color: Colors.white),
         ),
         body: Center(
-          child: InteractiveViewer( // Memungkinkan Zoom dan Geser
+          child: InteractiveViewer(
             panEnabled: true,
             minScale: 0.5,
             maxScale: 4.0,
-            child: Image.network( // KEMBALI KE Image.network
-              url,
+            child: Image.memory( // Menggunakan Image.memory
+              bytes,
               fit: BoxFit.contain,
-              loadingBuilder: (ctx, child, progress) {
-                if (progress == null) return child;
-                return const Center(child: CircularProgressIndicator(color: Colors.white));
-              },
-              errorBuilder: (ctx, error, stackTrace) => const Center(
-                child: Icon(Icons.error, color: Colors.red, size: 50),
-              ),
             ),
           ),
         ),
@@ -117,15 +109,17 @@ class DetailReportScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isSelesai = report.status.toLowerCase() == 'selesai';
 
-    // ASUMSI: report.imageUrl adalah String kosong jika tidak ada foto
-    final imageUrl = report.imageUrl.isEmpty ? '' : report.imageUrl;
+    // ASUMSI: report.imageUrlBase64 adalah String Base64 atau string kosong
+    final imageBase64 = report.imageUrlBase64.isEmpty ? '' : report.imageUrlBase64;
+    // ASUMSI: report.completionPhotoBase64 adalah String Base64 atau string kosong
+    final completionImageBase64 = report.completionPhotoBase64 ?? '';
+
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Detail Laporan'),
         backgroundColor: Colors.green,
         actions: [
-          // Icon Edit hanya muncul jika laporan BELUM SELESAI
           if (!isSelesai)
             IconButton(
               icon: const Icon(Icons.edit, color: Colors.white),
@@ -139,17 +133,15 @@ class DetailReportScreen extends ConsumerWidget {
               },
             ),
         ],
-
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0), // Padding utama untuk seluruh konten
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // --- 1. FOTO BUKTI AWAL ---
-              // Menggunakan URL/String yang ada
-              _buildImage(context, imageUrl),
+              _buildImage(context, imageBase64), // <-- Menggunakan Base64
               const SizedBox(height: 10),
 
               // --- DETAIL DATA AWAL ---
@@ -184,7 +176,12 @@ class DetailReportScreen extends ConsumerWidget {
                 Text(report.completionDescription ?? 'Tidak ada deskripsi.'),
                 const SizedBox(height: 12),
 
-                // HAPUS SEMUA LOGIKA FOTO PENYELESAIAN (completionPhotoUrl / completionPhotoBase64)
+                // --- FOTO PENYELESAIAN ---
+                if (completionImageBase64.isNotEmpty) ...[
+                  const Text('Foto Hasil Pekerjaan:', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  _buildImage(context, completionImageBase64), // <-- Menggunakan Base64
+                ],
 
                 const SizedBox(height: 12),
                 Row(
@@ -209,7 +206,6 @@ class DetailReportScreen extends ConsumerWidget {
                         icon: const Icon(Icons.check),
                         label: const Text('Tandai Selesai'),
                         onPressed: () async {
-                          // Navigasi ke EditScreen untuk menandai Selesai
                           await Navigator.push(
                             context,
                             MaterialPageRoute(

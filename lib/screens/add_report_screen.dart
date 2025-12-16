@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,7 +25,6 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
   double? _lon;
 
   bool _isLoading = false;
-
 
   Future<bool> _checkCameraPermission() async {
     var status = await Permission.camera.status;
@@ -107,15 +107,18 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
     });
   }
 
+  // LOGIKA UTAMA SUBMIT (Diubah untuk Base64)
   Future<void> _submitReport() async {
     if (_titleController.text.isEmpty ||
         _descController.text.isEmpty ||
         _imageFile == null ||
         _lat == null ||
         _lon == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Semua data harus lengkap!")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Semua data harus lengkap!")),
+        );
+      }
       return;
     }
 
@@ -125,12 +128,17 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
       final user = ref.read(authProvider);
       if (user == null) throw Exception("User belum login");
 
+      // --- BARU: KONVERSI FILE FOTO KE BASE64 STRING ---
+      final bytes = await _imageFile!.readAsBytes();
+      final base64String = base64Encode(bytes);
+      // ----------------------------------------------------
+
       final report = ReportModel(
         id: '',
         uid: user.uid,
         title: _titleController.text,
         description: _descController.text,
-        imageUrl: _imageFile!.path,
+        imageUrlBase64: base64String,
         latitude: _lat!,
         longitude: _lon!,
         status: "pending",
@@ -146,14 +154,15 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Gagal mengirim laporan: $e")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Gagal mengirim laporan: $e")),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -168,6 +177,7 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
+
             // INPUT JUDUL
             TextField(
               controller: _titleController,
@@ -193,7 +203,7 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
             ),
             const SizedBox(height: 20),
 
-            // PREVIEW FOTO
+            // PREVIEW FOTO (TIDAK BERUBAH, Masih menggunakan File image)
             Container(
               height: 200,
               width: double.infinity,
@@ -211,7 +221,7 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
             ),
             const SizedBox(height: 12),
 
-            // BUTTON FOTO KAMERA & GALERI
+            // BUTTON FOTO KAMERA & GALERI (TIDAK BERUBAH)
             Row(
               children: [
                 // KAMERA
@@ -240,6 +250,7 @@ class _AddReportScreenState extends ConsumerState<AddReportScreen> {
               ],
             ),
             const SizedBox(height: 20),
+
 
             // KOTAK KOORDINAT RINGKAS
             Container(
